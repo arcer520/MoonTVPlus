@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      workflows: write  # 新增这一行，允许修改workflow文件
     steps:
       - name: Checkout
         uses: actions/checkout@v4
