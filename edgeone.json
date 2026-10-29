@@ -8,5 +8,12 @@
     "nodejs": {
       "maxDuration": 120
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "http://tv.arcer.cn/:path*",
+      "destination": "https://tv.arcer.cn/:path*",
+      "statusCode": 301
+    }
+  ]
 }
