@@ -36,12 +36,24 @@ export class TursoAdapter implements DatabaseAdapter {
   private client: any;
 
   constructor(url: string, authToken: string) {
-    const createClient = getLibsqlClient();
-    this.client = createClient({
-      url,
-      authToken,
-    });
-  }
+  const createClient = getLibsqlClient();
+  
+  // 自定义 fetch，用于在 EdgeOne/Undici 环境下补全 duplex 选项
+  const edgeFetch = (input: any, init?: any) => {
+    // 如果请求体是一个流（ReadableStream），并且没有设置 duplex，则补全为 'half'
+    if (init?.body instanceof ReadableStream && !init.duplex) {
+      init.duplex = 'half';
+    }
+    // 调用全局 fetch 发出请求
+    return fetch(input, init);
+  };
+
+  this.client = createClient({
+    url,
+    authToken,
+    fetch: edgeFetch, // 传入自定义 fetch
+  });
+}
 
   prepare(query: string): D1PreparedStatement {
     return new TursoPreparedStatement(this.client, query);
