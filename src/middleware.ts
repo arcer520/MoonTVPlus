@@ -167,7 +167,8 @@ function handleAuthFailure(
 
 // 判断是否需要跳过认证的路径
 function shouldSkipAuth(pathname: string): boolean {
-  const skipPaths = [
+  // 静态资源
+  const staticPrefixes = [
     '/_next',
     '/favicon.ico',
     '/robots.txt',
@@ -177,7 +178,51 @@ function shouldSkipAuth(pathname: string): boolean {
     '/screenshot.png',
   ];
 
-  return skipPaths.some((path) => pathname.startsWith(path));
+  // 以下路径也必须显式跳过：
+  // EdgeOne Makers 对 Next.js middleware matcher 的支持不完整，
+  // matcher 中排除的路径仍可能进入 middleware，导致 /login 自我重定向循环。
+  const publicPaths = [
+    // 公开页面
+    '/login',
+    '/register',
+    '/oidc-register',
+    '/qr-login',
+    '/warning',
+    '/tv/login',
+    // 公开 API（认证相关）
+    '/api/login',
+    '/api/register',
+    '/api/logout',
+    '/api/auth/oidc',
+    '/api/auth/qr',
+    '/api/auth/refresh',
+    '/api/telegram/login',
+    '/api/telegram/config',
+    '/api/telegram/webhook',
+    '/api/cron',
+    '/api/server-config',
+    '/api/proxy-m3u8',
+    '/api/cms-proxy',
+    '/api/tvbox/subscribe',
+    '/api/theme/css',
+    '/api/openlist/cms-proxy',
+    '/api/openlist/play',
+    '/api/openlist/proxy',
+    '/api/emby/cms-proxy',
+    '/api/emby/play',
+    '/api/emby/subtitle',
+    '/api/emby/sources',
+    '/tvbox',
+  ];
+
+  if (staticPrefixes.some((path) => pathname.startsWith(path))) {
+    return true;
+  }
+
+  // 精确匹配或子路径匹配，避免 /login 误伤 /loginfoo
+  return publicPaths.some(
+    (path) => pathname === path || pathname.startsWith(path + '/')
+  );
 }
 
 function isTVModePath(pathname: string): boolean {
